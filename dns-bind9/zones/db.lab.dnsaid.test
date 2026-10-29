@@ -1,0 +1,36 @@
+$ORIGIN lab.dnsaid.test.
+$TTL 300
+
+@       IN      SOA     ns1.lab.dnsaid.test. hostmaster.lab.dnsaid.test. (
+                        2026102901      ; Serial
+                        3600            ; Refresh
+                        1800            ; Retry
+                        604800          ; Expire
+                        300 )           ; Negative Cache TTL
+
+@       IN      NS      ns1.lab.dnsaid.test.
+ns1     IN      A       127.0.0.1
+
+; Service 1: Latency Probe Service
+latency._agents IN SVCB 1 latency-probe.internal.lab.dnsaid.test. (
+                        port=8081
+                        alpn="h2,h3"
+                        key65300="/v1/diagnostic/latency" )
+latency._agents IN TXT  "schema=urn:dnsaid:diag:latency:v1" "env=lab" "cap=network-latency"
+latency-probe.internal IN A 127.0.0.1
+
+; Service 2: Route Analyzer Service
+route._agents   IN SVCB 1 route-analyzer.internal.lab.dnsaid.test. (
+                        port=8082
+                        alpn="h2"
+                        key65300="/v1/diagnostic/route" )
+route._agents   IN TXT  "schema=urn:dnsaid:diag:route:v1" "env=lab" "cap=traceroute"
+route-analyzer.internal IN A 127.0.0.1
+
+; Service 3: Reachability Monitor Service
+reachability._agents IN SVCB 1 reachability-monitor.internal.lab.dnsaid.test. (
+                        port=8083
+                        alpn="h2"
+                        key65300="/v1/diagnostic/reachability" )
+reachability._agents IN TXT "schema=urn:dnsaid:diag:reachability:v1" "env=lab" "cap=reachability"
+reachability-monitor.internal IN A 127.0.0.1

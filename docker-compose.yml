@@ -1,0 +1,88 @@
+services:
+  # 1. Observability Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - VITE_API_URL=http://discovery-api:8000
+    depends_on:
+      - discovery-api
+    networks:
+      - dnsaid-net
+
+  # 2. FastAPI Discovery & Policy API Gateway
+  discovery-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DNS_RESOLVER_IP=bind9-dnssec
+      - DNS_RESOLVER_PORT=53
+      - JWT_SECRET=dnsaid-hackathon-secure-seed-98471923
+    depends_on:
+      - bind9-dnssec
+    networks:
+      - dnsaid-net
+
+  # 3. DNSSEC-Enabled BIND9 Authoritative Server
+  bind9-dnssec:
+    build:
+      context: ./dns-bind9
+      dockerfile: Dockerfile
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    networks:
+      - dnsaid-net
+
+  # 4. Latency Diagnostic Service
+  latency-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVICE_ROLE=latency-probe
+      - JWT_SECRET=dnsaid-hackathon-secure-seed-98471923
+    networks:
+      - dnsaid-net
+
+  # 5. Route Diagnostic Service
+  route-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8082"]
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVICE_ROLE=route-analyzer
+      - JWT_SECRET=dnsaid-hackathon-secure-seed-98471923
+    networks:
+      - dnsaid-net
+
+  # 6. Reachability Diagnostic Service
+  reachability-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8083"]
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVICE_ROLE=reachability-monitor
+      - JWT_SECRET=dnsaid-hackathon-secure-seed-98471923
+    networks:
+      - dnsaid-net
+
+networks:
+  dnsaid-net:
+    driver: bridge

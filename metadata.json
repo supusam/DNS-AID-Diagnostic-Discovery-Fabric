@@ -1,0 +1,6 @@
+{
+  "name": "DNS-AID Diagnostic Discovery Fabric",
+  "description": "DNSSEC-validated dynamic discovery and authenticated invocation of distributed diagnostic services for PS-033.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
